@@ -1,0 +1,9 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+dependencies {
+    compile('com.facebook.android:facebook-android-sdk:4.3.0')
+}
