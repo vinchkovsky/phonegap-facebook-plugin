@@ -151,8 +151,13 @@ public class ConnectPlugin extends CordovaPlugin {
             });
         } else {
             Session session = Session.getActiveSession();
-            if (session != null && loginContext != null) {
+            if (requestCode == Session.DEFAULT_AUTHORIZE_ACTIVITY_CODE) {
                 session.onActivityResult(cordova.getActivity(), requestCode, resultCode, intent);
+
+            } else {
+                if (session != null && loginContext != null) {
+                    session.onActivityResult(cordova.getActivity(), requestCode, resultCode, intent);
+                }
             }
         }
         trackingPendingCall = false;
