@@ -659,7 +659,7 @@ public class ConnectPlugin extends CordovaPlugin {
 
         String[] urlParts = graphPath.split("\\?");
         String graphAction = urlParts[0];
-        Request graphRequest = Request.newGraphPathRequest(null, graphAction, graphCallback);
+        final Request graphRequest = Request.newGraphPathRequest(null, graphAction, graphCallback);
         Bundle params = graphRequest.getParameters();
 
         if (urlParts.length > 1) {
@@ -677,7 +677,13 @@ public class ConnectPlugin extends CordovaPlugin {
         params.putString("access_token", session.getAccessToken());
 
         graphRequest.setParameters(params);
-        graphRequest.executeAsync();
+
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                graphRequest.executeAsync();
+            }
+        });
     }
 
     /*
