@@ -634,7 +634,7 @@ public class ConnectPlugin extends CordovaPlugin {
 		Log.v(TAG, "FB_login: getUserInfo " + (cordova != null));
         if (cordova != null) {
 			Log.v(TAG, "FB_login: create request");
-            Request.newMeRequest(session, graphUserCb).executeAndWait();
+            Request.newMeRequest(session, graphUserCb).executeAsync();
         }
     }
 
