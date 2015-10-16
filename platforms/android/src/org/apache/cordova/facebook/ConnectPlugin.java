@@ -281,6 +281,7 @@ public class ConnectPlugin extends CordovaPlugin {
                     public void onCompleted(GraphUser user, Response response) {
                         // Request completed, userID was updated,
                         // recursive call to generate the correct response JSON
+						Log.v(TAG, "FB_login: request completed!");
                         if (response.getError() != null) {
 							Log.v(TAG, "FB_login: error");
                             _callbackContext.error(getFacebookRequestErrorResponse(response.getError()));
@@ -630,7 +631,9 @@ public class ConnectPlugin extends CordovaPlugin {
     }
 
     private void getUserInfo(final Session session, final Request.GraphUserCallback graphUserCb) {
+		Log.v(TAG, "FB_login: getUserInfo " + (cordova != null));
         if (cordova != null) {
+			Log.v(TAG, "FB_login: create request");
             Request.newMeRequest(session, graphUserCb).executeAsync();
         }
     }
