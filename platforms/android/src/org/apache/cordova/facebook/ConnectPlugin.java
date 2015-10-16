@@ -270,9 +270,11 @@ public class ConnectPlugin extends CordovaPlugin {
             return true;
         } else if (action.equals("getLoginStatus")) {
             Session session = Session.getActiveSession();
+			Log.v(TAG, "FB_login: " + (userID == null && Session.getActiveSession() != null  && session.isOpened()));
             if (userID == null && Session.getActiveSession() != null  && session.isOpened()) {
                 // We have no userID but a valid session, so must update the user info
                 // (Probably app was force stopped)
+				Log.v(TAG, "FB_login: update info");
                 final CallbackContext _callbackContext = callbackContext;
                 getUserInfo(session, new GraphUserCallback() {
                     @Override
@@ -280,14 +282,17 @@ public class ConnectPlugin extends CordovaPlugin {
                         // Request completed, userID was updated,
                         // recursive call to generate the correct response JSON
                         if (response.getError() != null) {
+							Log.v(TAG, "FB_login: error");
                             _callbackContext.error(getFacebookRequestErrorResponse(response.getError()));
                         } else {
+							Log.v(TAG, "FB_login: NO error");
                             userID = user.getId();
                             _callbackContext.success(getResponse());
                         }
                     }
                 });
             } else {
+				Log.v(TAG, "FB_login: SUCCESS!!");
                 callbackContext.success(getResponse());
             }
             return true;
