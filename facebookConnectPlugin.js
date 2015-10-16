@@ -27,6 +27,10 @@ if (cordova.platformId == "browser") {
                 }
             }
         },
+		
+		getUi: function() {
+			return FB.ui;
+		},
 
         showDialog: function (options, s, f) {
 
