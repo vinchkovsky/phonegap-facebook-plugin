@@ -644,6 +644,7 @@ public class ConnectPlugin extends CordovaPlugin {
         if (cordova != null) {
 			Log.v(TAG, "FB_login: create request");
 			
+			/*
 			Handler uiHandler = new Handler(Looper.getMainLooper());
 			Runnable runnable = new Runnable() 
 			{
@@ -654,7 +655,7 @@ public class ConnectPlugin extends CordovaPlugin {
 				}
 			}
 			uiHandler.post(runnable);
-			
+			*/
             //Request.newMeRequest(session, graphUserCb).executeAsync();
         }
     }
