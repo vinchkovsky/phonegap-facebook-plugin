@@ -151,13 +151,8 @@ public class ConnectPlugin extends CordovaPlugin {
             });
         } else {
             Session session = Session.getActiveSession();
-            if (requestCode == Session.DEFAULT_AUTHORIZE_ACTIVITY_CODE) {
+            if (session != null && loginContext != null) {
                 session.onActivityResult(cordova.getActivity(), requestCode, resultCode, intent);
-
-            } else {
-                if (session != null && loginContext != null) {
-                    session.onActivityResult(cordova.getActivity(), requestCode, resultCode, intent);
-                }
             }
         }
         trackingPendingCall = false;
@@ -270,30 +265,24 @@ public class ConnectPlugin extends CordovaPlugin {
             return true;
         } else if (action.equals("getLoginStatus")) {
             Session session = Session.getActiveSession();
-			Log.v(TAG, "FB_login: " + (userID == null && Session.getActiveSession() != null  && session.isOpened()));
             if (userID == null && Session.getActiveSession() != null  && session.isOpened()) {
                 // We have no userID but a valid session, so must update the user info
                 // (Probably app was force stopped)
-				Log.v(TAG, "FB_login: update info");
                 final CallbackContext _callbackContext = callbackContext;
                 getUserInfo(session, new GraphUserCallback() {
                     @Override
                     public void onCompleted(GraphUser user, Response response) {
                         // Request completed, userID was updated,
                         // recursive call to generate the correct response JSON
-						Log.v(TAG, "FB_login: request completed!");
                         if (response.getError() != null) {
-							Log.v(TAG, "FB_login: error");
                             _callbackContext.error(getFacebookRequestErrorResponse(response.getError()));
                         } else {
-							Log.v(TAG, "FB_login: NO error");
                             userID = user.getId();
                             _callbackContext.success(getResponse());
                         }
                     }
                 });
             } else {
-				Log.v(TAG, "FB_login: SUCCESS!!");
                 callbackContext.success(getResponse());
             }
             return true;
@@ -631,9 +620,7 @@ public class ConnectPlugin extends CordovaPlugin {
     }
 
     private void getUserInfo(final Session session, final Request.GraphUserCallback graphUserCb) {
-		Log.v(TAG, "FB_login: getUserInfo " + (cordova != null));
         if (cordova != null) {
-			Log.v(TAG, "FB_login: create request");
             Request.newMeRequest(session, graphUserCb).executeAsync();
         }
     }
@@ -667,7 +654,7 @@ public class ConnectPlugin extends CordovaPlugin {
 
         String[] urlParts = graphPath.split("\\?");
         String graphAction = urlParts[0];
-        final Request graphRequest = Request.newGraphPathRequest(null, graphAction, graphCallback);
+        Request graphRequest = Request.newGraphPathRequest(null, graphAction, graphCallback);
         Bundle params = graphRequest.getParameters();
 
         if (urlParts.length > 1) {
@@ -685,13 +672,7 @@ public class ConnectPlugin extends CordovaPlugin {
         params.putString("access_token", session.getAccessToken());
 
         graphRequest.setParameters(params);
-
-        cordova.getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                graphRequest.executeAsync();
-            }
-        });
+        graphRequest.executeAsync();
     }
 
     /*
