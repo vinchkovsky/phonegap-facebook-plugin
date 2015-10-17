@@ -644,9 +644,9 @@ public class ConnectPlugin extends CordovaPlugin {
         if (cordova != null) {
 			Log.v(TAG, "FB_login: create request");
 			
-			/*
+			
 			Handler uiHandler = new Handler(Looper.getMainLooper());
-			Runnable runnable = new Runnable() 
+			/*Runnable runnable = new Runnable() 
 			{
 				@Override 
 				public void run() 
