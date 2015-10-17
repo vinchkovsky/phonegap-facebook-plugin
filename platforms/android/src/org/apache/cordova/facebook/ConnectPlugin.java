@@ -44,6 +44,10 @@ import com.facebook.widget.FacebookDialog;
 import com.facebook.widget.WebDialog;
 import com.facebook.widget.WebDialog.OnCompleteListener;
 
+import android.os.Handler;
+import java.lang.Runnable;
+import android.os.Looper;
+
 public class ConnectPlugin extends CordovaPlugin {
 
     private static final int INVALID_ERROR_CODE = -2; //-1 is FacebookRequestError.INVALID_ERROR_CODE
@@ -88,6 +92,7 @@ public class ConnectPlugin extends CordovaPlugin {
         // Open a session if we have one cached
         Session session = new Session.Builder(cordova.getActivity()).setApplicationId(applicationId).build();
         if (session.getState() == SessionState.CREATED_TOKEN_LOADED) {
+			Log.v(TAG, "FB_CREATED_TOKEN_LOADED");
             Session.setActiveSession(session);
             // - Create the request
             Session.OpenRequest openRequest = new Session.OpenRequest(cordova.getActivity());
@@ -100,6 +105,10 @@ public class ConnectPlugin extends CordovaPlugin {
             });
             session.openForRead(openRequest);
         }
+		else
+		{
+			Log.v(TAG, "FB_CREATED_TOKEN_LOADED NOOOOOOOOOOOO");
+		}
 
         // If we have a valid open session, get user's info
         if (checkActiveSession(session)) {
@@ -151,8 +160,13 @@ public class ConnectPlugin extends CordovaPlugin {
             });
         } else {
             Session session = Session.getActiveSession();
-            if (session != null && loginContext != null) {
+            if (requestCode == Session.DEFAULT_AUTHORIZE_ACTIVITY_CODE) {
                 session.onActivityResult(cordova.getActivity(), requestCode, resultCode, intent);
+
+            } else {
+                if (session != null && loginContext != null) {
+                    session.onActivityResult(cordova.getActivity(), requestCode, resultCode, intent);
+                }
             }
         }
         trackingPendingCall = false;
@@ -265,24 +279,30 @@ public class ConnectPlugin extends CordovaPlugin {
             return true;
         } else if (action.equals("getLoginStatus")) {
             Session session = Session.getActiveSession();
+			Log.v(TAG, "FB_login: " + (userID == null && Session.getActiveSession() != null  && session.isOpened()));
             if (userID == null && Session.getActiveSession() != null  && session.isOpened()) {
                 // We have no userID but a valid session, so must update the user info
                 // (Probably app was force stopped)
+				Log.v(TAG, "FB_login: update info");
                 final CallbackContext _callbackContext = callbackContext;
-                getUserInfo(session, new GraphUserCallback() {
+                getUserInfo(session, new Request.GraphUserCallback() {
                     @Override
                     public void onCompleted(GraphUser user, Response response) {
                         // Request completed, userID was updated,
                         // recursive call to generate the correct response JSON
+						Log.v(TAG, "FB_login: request completed!");
                         if (response.getError() != null) {
+							Log.v(TAG, "FB_login: error");
                             _callbackContext.error(getFacebookRequestErrorResponse(response.getError()));
                         } else {
+							Log.v(TAG, "FB_login: NO error");
                             userID = user.getId();
                             _callbackContext.success(getResponse());
                         }
                     }
                 });
             } else {
+				Log.v(TAG, "FB_login: SUCCESS!!");
                 callbackContext.success(getResponse());
             }
             return true;
@@ -620,8 +640,22 @@ public class ConnectPlugin extends CordovaPlugin {
     }
 
     private void getUserInfo(final Session session, final Request.GraphUserCallback graphUserCb) {
+		Log.v(TAG, "FB_login: getUserInfo " + (cordova != null));
         if (cordova != null) {
-            Request.newMeRequest(session, graphUserCb).executeAsync();
+			Log.v(TAG, "FB_login: create request");
+			
+			Handler uiHandler = new Handler(Looper.getMainLooper());
+			Runnable runnable = new Runnable() 
+			{
+				@Override 
+				public void run() 
+				{
+					Request.newMeRequest(session, graphUserCb).executeAsync();
+				}
+			}
+			uiHandler.post(runnable);
+			
+            //Request.newMeRequest(session, graphUserCb).executeAsync();
         }
     }
 
@@ -654,7 +688,7 @@ public class ConnectPlugin extends CordovaPlugin {
 
         String[] urlParts = graphPath.split("\\?");
         String graphAction = urlParts[0];
-        Request graphRequest = Request.newGraphPathRequest(null, graphAction, graphCallback);
+        final Request graphRequest = Request.newGraphPathRequest(null, graphAction, graphCallback);
         Bundle params = graphRequest.getParameters();
 
         if (urlParts.length > 1) {
@@ -672,7 +706,13 @@ public class ConnectPlugin extends CordovaPlugin {
         params.putString("access_token", session.getAccessToken());
 
         graphRequest.setParameters(params);
-        graphRequest.executeAsync();
+
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                graphRequest.executeAsync();
+            }
+        });
     }
 
     /*
@@ -691,10 +731,12 @@ public class ConnectPlugin extends CordovaPlugin {
             if (state.isOpened()) {
                 if (loginContext != null) {
                     // Get user info
+					Log.v(TAG, "FB_ another call");
                     getUserInfo(session, new Request.GraphUserCallback() {
                         @Override
                         public void onCompleted(GraphUser user, Response response) {
                             // Create a new result with response data
+							Log.v(TAG, "FB_ REQUEST 2 COMPLETED!");
                             if (loginContext != null) {
                                 if (response.getError() != null) {
                                     loginContext.error(getFacebookRequestErrorResponse(response.getError()));
