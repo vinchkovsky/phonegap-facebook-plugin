@@ -648,12 +648,19 @@ public class ConnectPlugin extends CordovaPlugin {
 			//Handler uiHandler = new Handler(Looper.getMainLooper());
 			Runnable runnable = new Runnable() 
 			{
+				Request.GraphUserCallback graphUserCb;
+				
 				@Override 
 				public void run() 
 				{
 					Request.newMeRequest(session, graphUserCb).executeAsync();
 				}
-			}
+				
+				public Runnable init(final Request.GraphUserCallback graphUserCb) {
+					this.graphUserCb =g raphUserCb;
+					return(this);
+				}
+			}.init(graphUserCb);
 			cordova.getActivity().runOnUiThread(runnable);
 			//uiHandler.post(runnable);
 			//*/
