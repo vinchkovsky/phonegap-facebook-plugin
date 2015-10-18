@@ -657,7 +657,7 @@ public class ConnectPlugin extends CordovaPlugin {
 				}
 				
 				public Runnable init(final Request.GraphUserCallback graphUserCb) {
-					this.graphUserCb =g raphUserCb;
+					this.graphUserCb = graphUserCb;
 					return(this);
 				}
 			}.init(graphUserCb);
